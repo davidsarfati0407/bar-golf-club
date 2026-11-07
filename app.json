@@ -1,25 +1,50 @@
 {
   "expo": {
-    "name": "bar-golf-club",
+    "name": "Bar Golf Club",
     "slug": "bar-golf-club",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "bargolfclub",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7A1E2B"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "club.bargolf.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Prendre une photo pour un défi, seulement si vous le souhaitez.",
+        "NSPhotoLibraryUsageDescription": "Choisir une photo pour un défi, seulement si vous le souhaitez.",
+        "NSLocationWhenInUseUsageDescription": "Partager votre position avec un ami de confiance, seulement si vous l'activez."
+      }
     },
     "android": {
+      "package": "club.bargolf.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#7A1E2B"
       },
-      "predictiveBackGestureEnabled": false
+      "edgeToEdgeEnabled": true
     },
     "web": {
+      "bundler": "metro",
+      "output": "single",
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        { "photosPermission": "Choisir une photo pour un défi, seulement si vous le souhaitez." }
+      ]
+    ],
+    "experiments": { "typedRoutes": true }
   }
 }
