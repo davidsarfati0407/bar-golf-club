@@ -1,64 +1,58 @@
 import React from 'react';
-import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Path, Polygon, Rect } from 'react-native-svg';
 import { colors } from '@/theme/tokens';
 import type { Outfit } from '@/store/types';
 
 type Props = { outfit?: Outfit; size?: number; accent?: string; label?: string };
 
-// Mannequin en bois low-poly à grosse tête ronde, avec sa tenue de golfeur.
-export function Mannequin({ outfit = 'cap', size = 72, accent = colors.flagRed, label }: Props) {
-  const wood = colors.honey;
-  const woodDark = colors.woodDark;
-  const woodLight = colors.honeyLight;
+// Mannequin bois low-poly, grosse tête ronde, traits fins, palette unifiée (bois chaud désaturé).
+const WOOD = '#C9A27A';
+const WOOD_DARK = '#A8835C';
+const WOOD_LIGHT = '#DDBE9A';
+
+export function Mannequin({ outfit = 'cap', size = 64, accent = colors.flag, label }: Props) {
+  const stroke = colors.ink;
   return (
     <Svg width={size} height={size * 1.25} viewBox="0 0 80 100" accessibilityLabel={label ?? 'Avatar golfeur'}>
-      {/* jambes */}
-      <Rect x="29" y="64" width="9" height="24" rx="4" fill={woodDark} />
-      <Rect x="42" y="64" width="9" height="24" rx="4" fill={wood} />
-      <Rect x="26" y="86" width="14" height="7" rx="3" fill={colors.ink} />
-      <Rect x="41" y="86" width="14" height="7" rx="3" fill={colors.ink} />
-      {/* torse (facettes) */}
-      <Polygon points="26,40 54,40 58,66 22,66" fill={wood} />
-      <Polygon points="40,40 54,40 58,66 40,66" fill={woodLight} opacity={0.55} />
+      <Rect x="30" y="63" width="8" height="24" rx="4" fill={WOOD_DARK} />
+      <Rect x="42" y="63" width="8" height="24" rx="4" fill={WOOD} />
+      <Rect x="27" y="86" width="13" height="6" rx="3" fill={stroke} />
+      <Rect x="41" y="86" width="13" height="6" rx="3" fill={stroke} />
+      <Polygon points="27,40 53,40 56,65 24,65" fill={outfit === 'argyle' ? colors.fairway : WOOD} />
       {outfit === 'argyle' ? (
         <G>
-          <Polygon points="26,40 54,40 58,66 22,66" fill={colors.scoreGreen} />
-          <Polygon points="40,42 47,52 40,62 33,52" fill={colors.cream} opacity={0.9} />
-          <Polygon points="30,46 34,52 30,58 26,52" fill={accent} opacity={0.9} />
-          <Polygon points="50,46 54,52 50,58 46,52" fill={accent} opacity={0.9} />
+          <Polygon points="40,43 46,52 40,61 34,52" fill={colors.ivory} />
+          <Polygon points="31,47 34,52 31,57 28,52" fill={accent} />
+          <Polygon points="49,47 52,52 49,57 46,52" fill={accent} />
         </G>
-      ) : null}
-      {/* bras */}
-      <Rect x="14" y="42" width="8" height="24" rx="4" fill={woodDark} transform="rotate(10 18 54)" />
-      <Rect x="58" y="42" width="8" height="24" rx="4" fill={wood} transform="rotate(-10 62 54)" />
-      {/* cou */}
-      <Rect x="36" y="32" width="8" height="9" rx="3" fill={woodDark} />
-      {/* grosse tête ronde */}
-      <Circle cx="40" cy="20" r="17" fill={wood} />
-      <Path d="M40 3 A17 17 0 0 1 57 20 L40 20 Z" fill={woodLight} opacity={0.5} />
-      <Circle cx="34" cy="20" r="1.8" fill={colors.ink} />
-      <Circle cx="46" cy="20" r="1.8" fill={colors.ink} />
-      <Path d="M35 27 Q40 31 45 27" stroke={colors.ink} strokeWidth="1.8" fill="none" strokeLinecap="round" />
-      {/* casquette plate */}
+      ) : (
+        <Polygon points="40,40 53,40 56,65 40,65" fill={WOOD_LIGHT} opacity={0.5} />
+      )}
+      <Rect x="16" y="42" width="7" height="23" rx="3.5" fill={WOOD_DARK} transform="rotate(10 19.5 53)" />
+      <Rect x="57" y="42" width="7" height="23" rx="3.5" fill={WOOD} transform="rotate(-10 60.5 53)" />
+      <Rect x="36.5" y="33" width="7" height="8" rx="3" fill={WOOD_DARK} />
+      <Circle cx="40" cy="20" r="16" fill={WOOD} />
+      <Path d="M40 4 A16 16 0 0 1 56 20 L40 20 Z" fill={WOOD_LIGHT} opacity={0.45} />
+      <Circle cx="34.5" cy="20" r="1.5" fill={stroke} />
+      <Circle cx="45.5" cy="20" r="1.5" fill={stroke} />
+      <Path d="M35.5 26.5 Q40 29.5 44.5 26.5" stroke={stroke} strokeWidth="1.4" fill="none" strokeLinecap="round" />
       {outfit === 'cap' || outfit === 'argyle' ? (
         <G>
-          <Path d="M22 14 Q40 -6 58 14 Z" fill={accent} />
-          <Rect x="20" y="12" width="44" height="5" rx="2.5" fill={colors.ink} />
+          <Path d="M24 14 Q40 -2 56 14 Z" fill={accent} />
+          <Rect x="22" y="12.5" width="40" height="4" rx="2" fill={stroke} />
         </G>
       ) : null}
-      {/* putter */}
       {outfit === 'putter' ? (
         <G>
-          <Rect x="66" y="38" width="3" height="52" rx="1.5" fill={colors.ink} />
-          <Rect x="60" y="88" width="14" height="5" rx="2" fill={colors.inkSoft} />
-          <Ellipse cx="67.5" cy="38" rx="4" ry="3" fill={accent} />
+          <Rect x="65" y="40" width="2.5" height="50" rx="1.25" fill={stroke} />
+          <Rect x="60" y="88" width="13" height="4" rx="2" fill={stroke} />
+          <Circle cx="66.25" cy="40" r="3" fill={accent} />
         </G>
       ) : null}
-      {/* mini-drapeau */}
       {outfit === 'flag' ? (
         <G>
-          <Rect x="10" y="30" width="3" height="40" rx="1.5" fill={woodDark} />
-          <Path d="M13 31 L28 36 L13 41 Z" fill={accent} />
+          <Rect x="11" y="32" width="2.5" height="38" rx="1.25" fill={stroke} />
+          <Path d="M13.5 33 L26 37.5 L13.5 42 Z" fill={accent} />
         </G>
       ) : null}
     </Svg>

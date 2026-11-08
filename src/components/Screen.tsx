@@ -3,18 +3,13 @@ import { Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, space } from '@/theme/tokens';
 
-type Props = {
-  children: React.ReactNode;
-  bg?: string;
-  scroll?: boolean;
-  footer?: React.ReactNode;
-  padded?: boolean;
-};
+type Props = { children: React.ReactNode; dark?: boolean; scroll?: boolean; footer?: React.ReactNode; padded?: boolean; footerDark?: boolean };
 
-// Conteneur d'écran : fond, zones sûres, contenu défilant et pied fixe dans la zone du pouce.
-export function Screen({ children, bg = colors.cream, scroll = true, footer, padded = true }: Props) {
+// Conteneur d'écran : fond ivoire (clubhouse) ou vert nuit, zones sûres, pied fixe dans la zone du pouce.
+export function Screen({ children, dark, scroll = true, footer, padded = true, footerDark }: Props) {
   const insets = useSafeAreaInsets();
   const pad = padded ? space.lg : 0;
+  const bg = dark ? colors.fairway : colors.ivory;
   const body = scroll ? (
     <ScrollView
       style={styles.flex}
@@ -31,34 +26,30 @@ export function Screen({ children, bg = colors.cream, scroll = true, footer, pad
   return (
     <View style={[styles.flex, { backgroundColor: bg }]}>
       {body}
-      {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space.md) }]}>{footer}</View> : null}
+      {footer ? (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space.md), backgroundColor: footerDark ?? dark ? colors.fairway : colors.ivory, borderTopColor: dark ? colors.fairwayLine : colors.line }]}>
+          {footer}
+        </View>
+      ) : null}
     </View>
   );
 }
 
-// Sur un écran large (web), on présente l'app dans un cadre téléphone centré pour servir de maquette.
+// Sur écran large (web), cadre téléphone centré : sert de maquette interactive.
 export function PhoneFrame({ children }: { children: React.ReactNode }) {
   const { width, height } = useWindowDimensions();
   const wide = Platform.OS === 'web' && width > 560;
   if (!wide) return <>{children}</>;
-  const h = Math.min(874, height - 40);
   return (
     <View style={styles.backdrop}>
-      <View style={[styles.frame, { height: h }]}>{children}</View>
+      <View style={[styles.frame, { height: Math.min(844, height - 40) }]}>{children}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  footer: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.sm },
-  backdrop: { flex: 1, backgroundColor: '#120B0D', alignItems: 'center', justifyContent: 'center' },
-  frame: {
-    width: 402,
-    borderRadius: 44,
-    overflow: 'hidden',
-    borderWidth: 10,
-    borderColor: '#2A1D20',
-    backgroundColor: colors.cream,
-  },
+  footer: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.sm, borderTopWidth: 1 },
+  backdrop: { flex: 1, backgroundColor: colors.fairwayDeep, alignItems: 'center', justifyContent: 'center' },
+  frame: { width: 390, borderRadius: 40, overflow: 'hidden', borderWidth: 8, borderColor: '#111A17', backgroundColor: colors.ivory },
 });
