@@ -1,4 +1,4 @@
-import type { Challenge } from '@/data/challenges';
+import type { Challenge, GameMode } from '@/data/challenges';
 import type { Place } from '@/data/places';
 
 export type Mode = 'teams' | 'solo';
@@ -11,6 +11,9 @@ export type Player = {
   outfit: Outfit;
   teamId?: string;
   isHost?: boolean;
+  status: 'active' | 'left';
+  joinedAtHole: number;
+  reelOptIn: boolean;
 };
 
 export type Team = { id: string; name: string; color: string };
@@ -22,6 +25,7 @@ export type Hole = {
   place: Place;
   challenge: Challenge;
   done: boolean;
+  cancelled: boolean;
   results: HoleResult[];
   photoUri?: string;
 };
@@ -32,8 +36,10 @@ export type Outing = {
   id: string;
   title: string;
   createdAt: number;
+  updatedAt: number;
   status: OutingStatus;
   mode: Mode;
+  gameMode: GameMode;
   players: Player[];
   teams: Team[];
   holes: Hole[];
@@ -42,6 +48,7 @@ export type Outing = {
   consent: Consent;
   privacy: { photos: boolean; location: boolean };
   joinCode: string;
+  waterReminderAt?: number;
 };
 
 export type Memory = {
@@ -50,12 +57,16 @@ export type Memory = {
   date: number;
   holes: number;
   winner: string;
-  teams: string[];
+  winnerPoints: number;
+  gameMode: GameMode;
+  standings: { name: string; points: number }[];
 };
 
 export type State = {
   ageConfirmed: boolean;
+  onboardingSeen: boolean;
   outing: Outing | null;
+  meId: string | null;
   memories: Memory[];
   pendingSync: number;
   hydrated: boolean;

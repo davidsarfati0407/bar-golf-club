@@ -1,196 +1,221 @@
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, Share, StyleSheet, Switch, View } from 'react-native';
+import { Animated, Pressable, Share, StyleSheet, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Flag } from '@/components/Flag';
+import { GreenJacket } from '@/components/GreenJacket';
 import { success, tap } from '@/components/haptics';
 import { Header } from '@/components/Header';
 import { Mannequin } from '@/components/Mannequin';
+import { Neon } from '@/components/Neon';
 import { SafetyBar } from '@/components/SafetyBar';
+import { ScoreTable } from '@/components/ScoreTable';
 import { Screen } from '@/components/Screen';
+import { StatusBox } from '@/components/StatusBox';
 import { T } from '@/components/T';
-import { computeStandings, useOuting } from '@/store/outing';
-import { colors, radius, space, touch } from '@/theme/tokens';
+import { Toggle } from '@/components/Toggle';
+import { useReducedMotion } from '@/components/useReducedMotion';
+import { MODES } from '@/data/challenges';
+import { computeStandings, useOuting, type Standing } from '@/store/outing';
+import type { Outing } from '@/store/types';
+import { colors, motion, radius, space, touch } from '@/theme/tokens';
 
 export default function Scoreboard() {
   const { state, dispatch } = useOuting();
   const o = state.outing;
   const [replay, setReplay] = useState(false);
-  const [shared, setShared] = useState(false);
+  const [shared, setShared] = useState<'idle' | 'done' | 'copied' | 'error'>('idle');
+  const [hostOpen, setHostOpen] = useState(false);
 
-  if (!o) {
-    router.replace('/');
-    return null;
-  }
+  useEffect(() => {
+    if (!o) router.replace('/');
+  }, [o]);
+  if (!o) return null;
 
   const standings = computeStandings(o);
   const finished = o.status === 'finished';
   const leader = standings[0];
-  const best = o.holes.filter((h) => h.results.length).sort((a, b) => b.results.length * b.challenge.points - a.results.length * a.challenge.points)[0];
+  const tied = standings.filter((s) => s.rank === 1);
+  const isHost = state.meId === o.hostId;
+  const played = o.holes.filter((h) => h.done && !h.cancelled);
+  const best = played.filter((h) => h.results.length).sort((a, b) => b.results.length * b.challenge.points - a.results.length * a.challenge.points)[0];
+  const modeName = MODES.find((m) => m.id === o.gameMode)?.name ?? 'Classique';
+
+  const recapText = () => [
+    `Bar Golf Club · ${o.consent.places ? o.title : 'Sortie entre amis'} · ${modeName}`,
+    ...standings.map((s) => `${s.rank}. ${s.name} — ${s.points} pt${s.points > 1 ? 's' : ''}${o.consent.names ? ` (${s.members.map((m) => m.name).join(', ')})` : ''}`),
+    best ? `Moment fort : ${best.challenge.title}` : '',
+  ].filter(Boolean).join('\n');
 
   const shareRecap = async () => {
-    const lines = [
-      `Bar Golf Club · ${o.consent.places ? o.title : 'Sortie entre amis'}`,
-      ...standings.map((s, i) => `${i + 1}. ${o.consent.names ? s.name : `Équipe ${i + 1}`} — ${s.points} pts`),
-      best ? `Moment fort : ${best.challenge.title}` : '',
-    ].filter(Boolean);
+    const text = recapText();
     try {
-      await Share.share({ message: lines.join('\n') });
+      const res = await Share.share({ message: text });
+      if (res.action === Share.dismissedAction) return;
+      setShared('done');
+      success();
     } catch {
-      await Clipboard.setStringAsync(lines.join('\n'));
+      try {
+        await Clipboard.setStringAsync(text);
+        setShared('copied');
+        success();
+      } catch {
+        setShared('error');
+      }
     }
-    success();
-    setShared(true);
   };
 
-  const footer = finished ? (
-    <View style={styles.footerPlain}>
-      <Button label={shared ? 'Récap partagé' : 'Partager le récap (9:16)'} size="cta" kind="neon" onPress={shareRecap} />
-      <Button label="Ranger dans les souvenirs" kind="ghost" onPress={() => { dispatch({ type: 'quit' }); router.replace('/'); }} />
-    </View>
-  ) : (
-    <View style={styles.footer}>
-      <View style={styles.footerInner}>
-        <Button label="Retour au trou" size="cta" kind="primary" onPress={() => router.back()} />
-      </View>
-      <SafetyBar />
-    </View>
-  );
+  // Ranger : on quitte l'écran d'abord, puis on archive. Plus de page blanche.
+  const archive = () => {
+    router.replace('/');
+    setTimeout(() => dispatch({ type: 'archive' }), 0);
+  };
 
   return (
-    <Screen footer={footer} bg={colors.scoreGreenDeep}>
-      <Header title={finished ? 'Résumé de fin' : 'Feuille de score'} light kicker={o.title} onBack={() => (finished ? router.replace('/') : router.back())} />
-
-      {/* Carte de score verte « PUB GOLF » */}
-      <View style={styles.card} accessible accessibilityLabel={`Feuille de score. ${standings.map((s) => `${s.name} ${s.points} points`).join('. ')}`}>
-        <View style={styles.cardHead}>
-          <T v="h1" color={colors.cream} style={styles.pubgolf}>PUB GOLF</T>
-          <Flag size={36} />
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            <View style={styles.gridRow}>
-              <View style={styles.nameCell}><T v="caption" color={colors.honeyLight}>Trou</T></View>
-              {o.holes.map((h, i) => (
-                <View key={h.id} style={[styles.cell, i === o.currentHole && !finished && styles.cellNow]}>
-                  <T v="smallBold" color={colors.cream}>{i + 1}</T>
-                </View>
-              ))}
-              <View style={styles.totalHead}><T v="caption" color={colors.honeyLight}>Total</T></View>
-            </View>
-            {standings.map((s) => (
-              <View key={s.id} style={styles.gridRow}>
-                <View style={styles.nameCell}>
-                  <View style={[styles.dot, { backgroundColor: s.color }]} />
-                  <T v="smallBold" color={colors.cream} numberOfLines={1}>{s.name}</T>
-                </View>
-                {o.holes.map((h) => {
-                  const r = h.results.find((x) => x.scorerId === s.id);
-                  return (
-                    <View key={h.id} style={styles.cell}>
-                      <T v="bodyBold" color={r ? colors.cream : 'rgba(246,238,220,0.35)'}>{r ? r.points : h.done ? '–' : '·'}</T>
-                    </View>
-                  );
-                })}
-                <View style={[styles.cell, styles.total]}><T v="h3" color={colors.scoreGreenDeep}>{s.points}</T></View>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
+    <Screen dark footer={finished ? (
+      <View style={styles.footer}>
+        <Button label={shared === 'done' ? 'Récap partagé' : shared === 'copied' ? 'Récap copié' : 'Partager le récap'} size="cta" onDark onPress={shareRecap} />
+        <Button label="Ranger dans les souvenirs" kind="ghost" onDark onPress={archive} />
       </View>
+    ) : (
+      <View style={styles.footer}>
+        <Button label="Retour au trou" size="cta" onDark onPress={() => (router.canGoBack() ? router.back() : router.replace('/hole'))} />
+        <SafetyBar onDark />
+      </View>
+    )}>
+      <Header title={finished ? 'Résumé de fin' : 'Feuille de score'} onDark kicker={`${o.title} · ${modeName}`} onBack={() => (finished ? router.replace('/') : router.canGoBack() ? router.back() : router.replace('/hole'))} />
 
-      <T v="caption" color={colors.honeyLight} style={styles.section}>Classement</T>
+      {finished ? (
+        played.length === 0 ? (
+          <StatusBox kind="empty" onDark title="Aucun trou joué" text="La sortie s’est terminée avant le premier défi. Rien à classer, rien à partager." />
+        ) : (
+          <Victory leader={leader} tied={tied} competition={o.gameMode === 'competition'} />
+        )
+      ) : null}
+
+      {finished && played.length > 0 ? (
+        <>
+          <T v="caption" color={colors.gold} style={styles.section}>Carte à partager · 9:16</T>
+          <ShareCard outing={o} standings={standings} best={best?.challenge.title} />
+          <View style={styles.consent}>
+            <T v="smallBold" color={colors.ivory}>Avant de partager : chaque participant valide ce qui apparaît. Par défaut, noms d’équipe et avatars seulement.</T>
+            <Toggle onDark label="Prénoms des joueurs" value={o.consent.names} onChange={(v) => dispatch({ type: 'setConsent', key: 'names', value: v })} />
+            <Toggle onDark label="Photos des défis" hint={o.privacy.photos ? undefined : 'Aucune photo prise : rien à partager.'} value={o.consent.photos} onChange={(v) => dispatch({ type: 'setConsent', key: 'photos', value: v })} />
+            <Toggle onDark label="Nom de la sortie et lieux" value={o.consent.places} onChange={(v) => dispatch({ type: 'setConsent', key: 'places', value: v })} />
+            <T v="small" color={colors.ivoryDark}>Aucun contenu partagé ne montre de verre ni de consommation.</T>
+            {shared === 'error' ? <StatusBox kind="error" onDark title="Partage indisponible" text="Ni partage ni copie possibles ici. Montre l’écran, ça marche aussi." /> : null}
+          </View>
+        </>
+      ) : null}
+
+      <T v="caption" color={colors.gold} style={styles.section}>Feuille de score</T>
+      <Card tone="dark">
+        <View style={styles.cardHead}>
+          <T v="h2" color={colors.ivory}>Bar Golf Club</T>
+          <T v="caption" color={colors.ivoryDark}>{o.holes.length} trous</T>
+        </View>
+        <ScoreTable outing={o} />
+      </Card>
+
+      <T v="caption" color={colors.gold} style={styles.section}>Classement</T>
       <View style={styles.ranking}>
-        {standings.map((s, i) => (
-          <View key={s.id} style={[styles.rank, i === 0 && styles.rankFirst]}>
-            <T v="number" color={i === 0 ? colors.scoreGreenDeep : colors.cream} style={styles.rankNum}>{i + 1}</T>
-            <View style={styles.avatars}>
-              {s.members.slice(0, 3).map((m) => <Mannequin key={m.id} outfit={m.outfit} size={34} accent={s.color} label="" />)}
-            </View>
+        {standings.map((s) => (
+          <View key={s.id} style={[styles.rank, s.rank === 1 && styles.rankFirst]}>
+            <T v="number" color={s.rank === 1 ? colors.fairway : colors.ivory} style={styles.rankNum}>{s.rank}</T>
+            <View style={styles.avatars}>{s.members.slice(0, 3).map((m) => <Mannequin key={m.id} outfit={m.outfit} size={30} accent={s.color} label="" />)}</View>
             <View style={styles.flex}>
-              <T v="h3" color={i === 0 ? colors.ink : colors.cream} numberOfLines={1}>{s.name}</T>
-              <T v="small" color={i === 0 ? colors.inkMuted : colors.creamDark} numberOfLines={1}>{s.members.map((m) => m.name).join(', ')}</T>
+              <T v="h3" color={s.rank === 1 ? colors.ink : colors.ivory} numberOfLines={2}>{s.name}{s.left ? ' · parti' : ''}</T>
+              <T v="small" color={s.rank === 1 ? colors.inkMuted : colors.ivoryDark} numberOfLines={1}>{s.members.map((m) => m.name).join(', ')} · {s.wins} défi{s.wins > 1 ? 's' : ''}</T>
             </View>
-            <T v="h1" color={i === 0 ? colors.scoreGreen : colors.cream}>{s.points}</T>
+            <T v="number" color={s.rank === 1 ? colors.fairway : colors.ivory}>{s.points}</T>
           </View>
         ))}
       </View>
 
-      {finished ? (
+      {finished && played.length > 0 ? (
         <>
-          <T v="caption" color={colors.honeyLight} style={styles.section}>Carte à partager · 9:16</T>
-          <View style={styles.storyWrap}>
-            <View style={styles.story} accessible accessibilityLabel="Aperçu de la carte à partager">
-              <T v="caption" color={colors.neonPink}>Bar Golf Club</T>
-              <T v="h2" color={colors.cream} center>{o.consent.places ? o.title : 'Sortie entre amis'}</T>
-              <View style={styles.storyPodium}>
-                {standings.slice(0, 3).map((s, i) => (
-                  <View key={s.id} style={[styles.podium, { height: 70 - i * 14 }]}>
-                    <Mannequin outfit={s.members[0]?.outfit ?? 'cap'} size={34} accent={s.color} label="" />
-                    <T v="smallBold" color={colors.cream} numberOfLines={1}>{o.consent.names ? s.name : `Équipe ${i + 1}`}</T>
-                    <T v="h3" color={colors.honeyLight}>{s.points}</T>
-                  </View>
-                ))}
-              </View>
-              {best ? <T v="small" color={colors.creamDark} center>Moment fort : {best.challenge.title}</T> : null}
-              <T v="caption" color={colors.creamDark} center>{o.consent.photos && best?.photoUri ? 'Avec photo' : 'Avatars uniquement'}</T>
-            </View>
-            <View style={styles.consent}>
-              <T v="smallBold" color={colors.cream}>Chaque participant valide avant d’apparaître. Par défaut : avatars seuls, sans photo ni lieu exact.</T>
-              <Toggle label="Prénoms et noms d’équipe" value={o.consent.names} onChange={(v) => dispatch({ type: 'setConsent', key: 'names', value: v })} />
-              <Toggle label="Photos des défis" value={o.consent.photos} onChange={(v) => dispatch({ type: 'setConsent', key: 'photos', value: v })} />
-              <Toggle label="Nom de la sortie et lieux" value={o.consent.places} onChange={(v) => dispatch({ type: 'setConsent', key: 'places', value: v })} />
-              <T v="small" color={colors.creamDark}>Aucun contenu partagé ne montre de verre ni de consommation.</T>
-            </View>
-          </View>
-
-          <T v="caption" color={colors.honeyLight} style={styles.section}>Replay court · à la demande</T>
-          {replay ? <Replay /> : (
-            <Button label="Créer le replay animé" kind="secondary" onPress={() => setReplay(true)} />
-          )}
+          <T v="caption" color={colors.gold} style={styles.section}>Replay court · à la demande</T>
+          {replay ? <Replay outing={o} /> : <Button label="Créer le replay animé" kind="secondary" onDark onPress={() => setReplay(true)} />}
         </>
       ) : null}
 
-      <Pressable accessibilityRole="button" accessibilityLabel="Options de l’hôte : corriger un score, retirer un participant, passer la main" onPress={() => { tap(); router.push('/host'); }} style={styles.hostLink}>
-        <T v="bodyBold" color={colors.honeyLight}>Options de l’hôte</T>
-      </Pressable>
+      {isHost ? (
+        <View style={styles.hostBox}>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: hostOpen }} accessibilityLabel="Options de l’hôte" onPress={() => { tap(); setHostOpen(!hostOpen); }} style={styles.hostToggle}>
+            <T v="smallBold" color={colors.ivoryDark}>Options de l’hôte</T>
+            <T v="smallBold" color={colors.gold}>{hostOpen ? 'Replier' : 'Déplier'}</T>
+          </Pressable>
+          {hostOpen ? (
+            <View style={styles.hostActions}>
+              <Button label="Corriger un score, retirer, passer la main" kind="secondary" onDark size="sm" onPress={() => router.push('/host')} />
+              {!finished ? <Button label="Terminer maintenant" kind="ghost" onDark size="sm" onPress={() => dispatch({ type: 'finish' })} /> : null}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
-function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+// Victoire d'abord : vainqueur, veste verte en Compétition, néon qui s'allume une fois.
+function Victory({ leader, tied, competition }: { leader: Standing; tied: Standing[]; competition: boolean }) {
+  const exaequo = tied.length > 1;
   return (
-    <View style={styles.toggle}>
-      <T v="small" color={colors.cream} style={styles.flex}>{label}</T>
-      <Switch value={value} onValueChange={(v) => { tap(); onChange(v); }} accessibilityLabel={label} trackColor={{ true: colors.neonPink, false: 'rgba(246,238,220,0.3)' }} thumbColor={colors.cream} />
+    <View style={styles.victory} accessible accessibilityLabel={exaequo ? `Ex aequo : ${tied.map((t) => t.name).join(' et ')}, ${leader.points} points` : `${leader.name} gagne avec ${leader.points} points`}>
+      {competition ? <GreenJacket size={110} /> : <View style={styles.avatarsBig}>{leader.members.slice(0, 3).map((m) => <Mannequin key={m.id} outfit={m.outfit} size={56} accent={leader.color} label="" />)}</View>}
+      <T v="caption" color={colors.ivoryDark} center>{exaequo ? 'Ex aequo' : competition ? 'Veste verte' : 'Vainqueur'}</T>
+      <Neon size="h1" center>{exaequo ? tied.map((t) => t.name).join(' & ') : leader.name}</Neon>
+      <T v="number" color={colors.ivory} center>{leader.points} <T v="h3" color={colors.ivoryDark}>pt{leader.points > 1 ? 's' : ''}</T></T>
     </View>
   );
 }
 
-function Replay() {
-  const { state } = useOuting();
-  const o = state.outing!;
+// Carte 9:16 : noms d'équipe toujours, prénoms et lieux seulement avec consentement.
+function ShareCard({ outing: o, standings, best }: { outing: Outing; standings: Standing[]; best?: string }) {
+  return (
+    <View style={styles.story} accessible accessibilityLabel="Aperçu de la carte à partager">
+      <Neon size="h2" center textStyle={styles.storyTitle}>Bar Golf Club</Neon>
+      <T v="smallBold" color={colors.ivory} center numberOfLines={2}>{o.consent.places ? o.title : 'Sortie entre amis'}</T>
+      <View style={styles.storyPodium}>
+        {standings.slice(0, 3).map((s, i) => (
+          <View key={s.id} style={[styles.podium, { paddingBottom: [16, 6, 0][i] }]}>
+            <Mannequin outfit={s.members[0]?.outfit ?? 'cap'} size={30} accent={s.color} label="" />
+            <T v="smallBold" color={colors.ivory} center numberOfLines={2} style={styles.podiumName}>{s.name}</T>
+            {o.consent.names ? <T v="small" color={colors.ivoryDark} center numberOfLines={2} style={styles.podiumName}>{s.members.map((m) => m.name).join(', ')}</T> : null}
+            <T v="numberSmall" color={colors.gold}>{s.points}</T>
+          </View>
+        ))}
+      </View>
+      {best ? <T v="small" color={colors.ivoryDark} center numberOfLines={2}>Moment fort : {best}</T> : null}
+      <T v="caption" color={colors.ivoryDark} center>{o.consent.photos && o.holes.some((h) => h.photoUri) ? 'Avec photos' : 'Avatars uniquement'}</T>
+    </View>
+  );
+}
+
+function Replay({ outing: o }: { outing: Outing }) {
+  const reduced = useReducedMotion();
   const [i, setI] = useState(0);
-  const fade = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    fade.setValue(0);
-    Animated.timing(fade, { toValue: 1, duration: 350, useNativeDriver: true }).start();
+    if (!reduced) {
+      fade.setValue(0);
+      Animated.timing(fade, { toValue: 1, duration: motion.slow, useNativeDriver: true }).start();
+    }
     const t = setTimeout(() => setI((x) => (x + 1) % o.holes.length), 1800);
     return () => clearTimeout(t);
-  }, [i, fade, o.holes.length]);
+  }, [i, fade, o.holes.length, reduced]);
   const h = o.holes[i];
   const standings = computeStandings({ ...o, holes: o.holes.slice(0, i + 1) });
   return (
-    <Card tone="red" style={styles.replay}>
+    <Card tone="dark" style={styles.replay}>
       <Animated.View style={{ opacity: fade, gap: 6 }}>
-        <T v="caption" color={colors.honeyLight}>Trou {i + 1} · {h.challenge.title}</T>
+        <T v="caption" color={colors.gold}>Trou {i + 1} · {h.cancelled ? 'annulé' : h.challenge.title}</T>
         {standings.map((s) => (
           <View key={s.id} style={styles.replayRow}>
             <View style={[styles.dot, { backgroundColor: s.color }]} />
-            <T v="bodyBold" color={colors.cream} style={styles.flex}>{s.name}</T>
-            <T v="h3" color={colors.cream}>{s.points}</T>
+            <T v="bodyBold" color={colors.ivory} style={styles.flex}>{s.name}</T>
+            <T v="numberSmall" color={colors.ivory}>{s.points}</T>
           </View>
         ))}
       </Animated.View>
@@ -200,32 +225,26 @@ function Replay() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  footer: { gap: space.sm, marginHorizontal: -space.lg },
-  footerInner: { gap: space.sm, paddingHorizontal: space.lg },
-  footerPlain: { gap: space.sm },
-  card: { backgroundColor: colors.scoreGreen, borderRadius: radius.lg, padding: space.md, borderWidth: 3, borderColor: colors.cream, gap: space.sm },
-  cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pubgolf: { letterSpacing: 3 },
-  gridRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(246,238,220,0.25)', minHeight: 40 },
-  nameCell: { width: 120, flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 6 },
-  cell: { width: 36, alignItems: 'center', justifyContent: 'center', minHeight: 40 },
-  cellNow: { backgroundColor: 'rgba(255,79,163,0.35)', borderRadius: 8 },
-  total: { width: 52, backgroundColor: colors.cream, borderRadius: 8, marginLeft: 6 },
-  totalHead: { width: 52, marginLeft: 6, alignItems: 'center', justifyContent: 'center', minHeight: 40 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  section: { marginTop: space.lg, marginBottom: space.sm },
+  footer: { gap: space.sm },
+  section: { marginTop: space.xl, marginBottom: space.sm },
+  victory: { alignItems: 'center', gap: space.sm, paddingVertical: space.lg },
+  avatarsBig: { flexDirection: 'row', gap: 4 },
+  cardHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: space.sm },
   ranking: { gap: space.sm },
-  rank: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touch.cta, padding: space.md, borderRadius: radius.lg, backgroundColor: 'rgba(246,238,220,0.08)' },
-  rankFirst: { backgroundColor: colors.cream },
-  rankNum: { width: 40, fontSize: 32, lineHeight: 36 },
+  rank: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touch.cta, padding: space.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.fairwayLine },
+  rankFirst: { backgroundColor: colors.ivory, borderColor: colors.ivory },
+  rankNum: { width: 28, fontSize: 26, lineHeight: 30 },
   avatars: { flexDirection: 'row' },
-  storyWrap: { gap: space.md },
-  story: { alignSelf: 'center', width: 200, aspectRatio: 9 / 16, backgroundColor: colors.pubRedDeep, borderRadius: radius.lg, borderWidth: 3, borderColor: colors.neonPink, padding: space.md, alignItems: 'center', justifyContent: 'space-between' },
-  storyPodium: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  podium: { width: 52, alignItems: 'center', justifyContent: 'flex-end', gap: 2 },
-  consent: { gap: space.sm, backgroundColor: 'rgba(246,238,220,0.08)', borderRadius: radius.lg, padding: space.md },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touch.min },
+  story: { alignSelf: 'center', width: 216, aspectRatio: 9 / 16, backgroundColor: colors.fairwayDeep, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.gold, padding: space.md, alignItems: 'center', justifyContent: 'space-between' },
+  storyTitle: { fontSize: 20, lineHeight: 24 },
+  storyPodium: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2 },
+  podium: { width: 62, alignItems: 'center', gap: 2 },
+  podiumName: { fontSize: 10, lineHeight: 12 },
+  consent: { gap: space.sm, borderWidth: 1, borderColor: colors.fairwayLine, borderRadius: radius.lg, padding: space.md, marginTop: space.md },
   replay: { gap: 6 },
   replayRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  hostLink: { minHeight: touch.min, alignItems: 'center', justifyContent: 'center', marginTop: space.lg },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  hostBox: { marginTop: space.xl, borderTopWidth: 1, borderTopColor: colors.fairwayLine, paddingTop: space.sm },
+  hostToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: touch.min },
+  hostActions: { gap: space.sm, paddingBottom: space.sm },
 });

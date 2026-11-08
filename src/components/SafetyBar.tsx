@@ -6,13 +6,14 @@ import { colors, radius, touch } from '@/theme/tokens';
 import { tap } from './haptics';
 import { T } from './T';
 
-// Toujours visible pendant la sortie : « Je m'arrête », eau, taxi/VTC, position à un ami.
-export function SafetyBar() {
-  const items: { key: string; label: string; icon: React.ReactNode; onPress: () => void }[] = [
-    { key: 'stop', label: 'Je m’arrête', icon: <StopIcon />, onPress: () => router.push('/stop') },
-    { key: 'water', label: 'Eau', icon: <WaterIcon />, onPress: () => router.push({ pathname: '/stop', params: { focus: 'water' } }) },
-    { key: 'taxi', label: 'Taxi', icon: <CarIcon />, onPress: () => router.push({ pathname: '/stop', params: { focus: 'taxi' } }) },
-    { key: 'pin', label: 'Position', icon: <PinIcon />, onPress: () => router.push({ pathname: '/stop', params: { focus: 'pin' } }) },
+// Toujours visible pendant la sortie : Je m'arrête · Eau · Taxi · Position. Aplats mats, aucun clignotement.
+export function SafetyBar({ onDark }: { onDark?: boolean }) {
+  const fg = onDark ? colors.ivory : colors.ink;
+  const items = [
+    { key: 'stop', label: 'Je m’arrête', icon: <StopIcon />, focus: 'stop' },
+    { key: 'water', label: 'Eau', icon: <WaterIcon />, focus: 'water' },
+    { key: 'taxi', label: 'Taxi', icon: <CarIcon fg={fg} />, focus: 'taxi' },
+    { key: 'pin', label: 'Position', icon: <PinIcon />, focus: 'pin' },
   ];
   return (
     <View style={styles.bar} accessibilityRole="toolbar" accessibilityLabel="Barre de sécurité">
@@ -21,11 +22,11 @@ export function SafetyBar() {
           key={it.key}
           accessibilityRole="button"
           accessibilityLabel={it.label}
-          onPress={() => { tap(); it.onPress(); }}
-          style={({ pressed }) => [styles.item, it.key === 'stop' && styles.stop, pressed && { opacity: 0.8 }]}
+          onPress={() => { tap(); router.push({ pathname: '/stop', params: { focus: it.focus } }); }}
+          style={({ pressed }) => [styles.item, { borderColor: onDark ? colors.fairwayLine : colors.line }, it.key === 'stop' && styles.stop, pressed && styles.pressed]}
         >
           {it.icon}
-          <T v="caption" color={it.key === 'stop' ? colors.cream : colors.ink}>{it.label}</T>
+          <T v="caption" color={it.key === 'stop' ? colors.ivory : fg} numberOfLines={1}>{it.label}</T>
         </Pressable>
       ))}
     </View>
@@ -34,41 +35,28 @@ export function SafetyBar() {
 
 function StopIcon() {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
-      <Circle cx="10" cy="10" r="9" fill={colors.cream} />
-      <Rect x="6.5" y="6.5" width="7" height="7" rx="1.5" fill={colors.pubRed} />
-    </Svg>
+    <Svg width={18} height={18} viewBox="0 0 20 20"><Circle cx="10" cy="10" r="8.5" stroke={colors.ivory} strokeWidth="1.5" fill="none" /><Rect x="6.5" y="6.5" width="7" height="7" rx="1.5" fill={colors.ivory} /></Svg>
   );
 }
 function WaterIcon() {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
-      <Path d="M10 2 C10 2 4 9 4 12.5 A6 6 0 0 0 16 12.5 C16 9 10 2 10 2 Z" fill="#3B8BD6" />
-      <Path d="M7 12.5 A3 3 0 0 0 10 15.5" stroke={colors.cream} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    </Svg>
+    <Svg width={18} height={18} viewBox="0 0 20 20"><Path d="M10 2.5 C10 2.5 4.5 9 4.5 12.5 A5.5 5.5 0 0 0 15.5 12.5 C15.5 9 10 2.5 10 2.5 Z" fill={colors.water} /></Svg>
   );
 }
-function CarIcon() {
+function CarIcon({ fg }: { fg: string }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
-      <Path d="M3 11 L5 6.5 Q5.5 5.5 6.5 5.5 L13.5 5.5 Q14.5 5.5 15 6.5 L17 11 Z" fill={colors.ink} />
-      <Rect x="2" y="10.5" width="16" height="5" rx="1.5" fill={colors.honey} />
-      <Circle cx="6" cy="15.5" r="2" fill={colors.ink} />
-      <Circle cx="14" cy="15.5" r="2" fill={colors.ink} />
-    </Svg>
+    <Svg width={18} height={18} viewBox="0 0 20 20"><Path d="M3 11 L5 6.5 Q5.5 5.5 6.5 5.5 L13.5 5.5 Q14.5 5.5 15 6.5 L17 11 Z" fill={fg} /><Rect x="2" y="10.5" width="16" height="5" rx="1.5" fill={colors.gold} /><Circle cx="6" cy="15.5" r="1.8" fill={fg} /><Circle cx="14" cy="15.5" r="1.8" fill={fg} /></Svg>
   );
 }
 function PinIcon() {
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
-      <Path d="M10 18 C10 18 4 11.5 4 8 A6 6 0 0 1 16 8 C16 11.5 10 18 10 18 Z" fill={colors.scoreGreen} />
-      <Circle cx="10" cy="8" r="2.4" fill={colors.cream} />
-    </Svg>
+    <Svg width={18} height={18} viewBox="0 0 20 20"><Path d="M10 18 C10 18 4 11.5 4 8 A6 6 0 0 1 16 8 C16 11.5 10 18 10 18 Z" fill={colors.success} /><Circle cx="10" cy="8" r="2.2" fill={colors.ivory} /></Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.line },
-  item: { flex: 1, minHeight: touch.min, borderRadius: radius.md, backgroundColor: colors.cream, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 1.5, borderColor: colors.line },
-  stop: { backgroundColor: colors.pubRed, borderColor: colors.pubRed, flex: 1.4 },
+  bar: { flexDirection: 'row', gap: 6 },
+  item: { flex: 1, minHeight: touch.min, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 1, paddingHorizontal: 2 },
+  stop: { backgroundColor: colors.danger, borderColor: colors.danger, flex: 1.5 },
+  pressed: { opacity: 0.75 },
 });

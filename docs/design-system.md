@@ -1,75 +1,62 @@
-# Design system
+# Design system « clubhouse de nuit »
 
-Source de vérité : `src/theme/tokens.ts`. Univers repris de la vidéo : mannequins en bois low-poly aux grosses têtes rondes, façades en briques, néons, drapeau rouge, carte de score verte « PUB GOLF », tenues de golfeur.
+Source de vérité : `src/theme/tokens.ts`. Golf chic + néon festif, épuré. Le mur de briques a disparu : le néon vit sur fond vert nuit.
 
 ## Couleurs
 
 | Token | Hex | Usage |
 | --- | --- | --- |
-| `pubRed` | `#7A1E2B` | En-têtes brique, CTA principal, enseigne |
-| `pubRedDeep` | `#55121D` | Porte 18+, carte 9:16 |
-| `flagRed` | `#E0352B` | Drapeaux, équipe 1 |
-| `honey` | `#C8893A` | Bois des mannequins, mâts, cartes bois |
-| `honeyLight` | `#E2B373` | Textes secondaires sur fond sombre |
-| `woodDark` | `#8A5A24` | Ombres bois |
-| `scoreGreen` | `#1F6B45` | Carte de score, carte du parcours, CTA « avancer » |
-| `scoreGreenDeep` | `#134A30` | Fond de la feuille de score |
-| `cream` | `#F6EEDC` | Fond d'écran, texte sur fonds sombres |
-| `paper` | `#FBF6EA` | Cartes |
-| `neonPink` | `#FF4FA3` | Accent néon : démo, trou en cours, 18+, consentements |
-| `ink` | `#1A1410` | Texte principal |
+| `fairway` | `#0E3B2E` | Fond des écrans de fête (accueil, résumé), en-têtes, CTA sur ivoire |
+| `fairwayDeep` | `#092A21` | Fond derrière le cadre téléphone, carte 9:16 |
+| `fairwayLight` | `#15503E` | Surfaces sur vert nuit (cartes, table) |
+| `fairwayLine` | `rgba(247,242,231,0.16)` | Traits fins sur vert |
+| `ivory` | `#F7F2E7` | Fond des écrans de travail, texte sur vert |
+| `ivoryDark` / `ivoryDeep` | `#EBE3D2` / `#DED3BC` | Cellules, bordures, textes secondaires sur vert |
+| `ink` | `#1A2420` | Texte principal, boutons noirs |
+| `inkSoft` / `inkMuted` | `#3E4A45` / `#5F6B66` | Texte secondaire |
+| `gold` | `#E8C36A` | **L'unique accent néon.** Logo, victoire, carte à partager, trou courant, libellés de section sur vert |
+| `flag` | `#D63A2F` | Couleur fonctionnelle des drapeaux, jamais décorative |
+| `teamRed` / `teamBlue` / `teamRose` / `teamGold` | `#D63A2F` / `#4C8FD1` / `#E06C9F` / `#E8C36A` | Couleurs d'équipe, lisibles sur ivoire et sur vert |
+| `success` / `warning` / `danger` / `water` | `#2F8F5B` / `#C98A2B` / `#B8382E` / `#3F7FBF` | États et barre de sécurité |
 
-Contrastes vérifiés AA : crème sur rouge pub (≈ 8:1), crème sur vert scorecard (≈ 6:1), encre sur crème (≈ 14:1), encre sur néon rose (≈ 6:1).
+**Pourquoi l'or champagne plutôt que le rose corail** : il prolonge l'univers du club (veste verte, trophées, laiton du clubhouse), il contraste mieux sur le vert nuit (≈ 9:1 contre ≈ 5:1 pour le rose) et il ne se confond pas avec le rouge des drapeaux ni avec la couleur d'équipe rose. Le rose reste une couleur d'équipe.
+
+Contrastes AA vérifiés : ivoire sur fairway ≈ 11:1, encre sur ivoire ≈ 14:1, or sur fairway ≈ 9:1, encre sur or ≈ 10:1, ivoire sur danger ≈ 5.5:1, encre sur blanc ≈ 16:1.
 
 ## Typographie
 
-Nunito (arrondie, grasse), via `@expo-google-fonts/nunito`.
+| Rôle | Police | Styles |
+| --- | --- | --- |
+| Titres | Playfair Display 700 / 900 | `display` 44, `h1` 30, `h2` 23 |
+| Interface | Inter 400 / 500 / 600 / 700 | `h3` 17, `body` 16, `small` 14, `caption` 11 capitales espacées |
+| Scores | Inter 700, **chiffres tabulaires** (`fontVariant: tabular-nums`) | `number` 36, `numberSmall` 20, `numberCell` 13 |
 
-| Style | Poids | Taille / interligne | Usage |
-| --- | --- | --- | --- |
-| `display` | Black 900 | 56 / 60 | Enseigne, stepper, 18+ |
-| `number` | Black 900 | 44 / 48 | Points du défi, rangs |
-| `h1` | Black 900 | 32 / 36 | Titre du défi, code d'invitation, totaux |
-| `h2` | ExtraBold 800 | 24 / 28 | Sections, prix |
-| `h3` | ExtraBold 800 | 18 / 22 | Titres de cartes, boutons CTA |
-| `body` / `bodyBold` | SemiBold 600 / Bold 700 | 16 / 22 | Texte courant |
-| `small` / `smallBold` | 600 / 700 | 14 / 18 | Métadonnées |
-| `caption` | Bold 700, capitales, +0,6 | 12 / 16 | Étiquettes |
+Les textes suivent la taille système, plafonnés à 1,3× sur `display`, `number`, `h1` pour préserver les grilles.
 
-Peu de texte, gros chiffres, une action principale par écran. Les textes suivent la taille système (plafond 1,3× sur `display`, `number`, `h1`).
-
-## Espacements, rayons, cibles
-
-- Espacements : 4 · 8 · 12 · 16 · 24 · 32 · 48.
-- Rayons : 10 · 16 · 22 · 30 · pilule.
-- Cibles tactiles : 48 px minimum, CTA 60 px, toujours en pied d'écran (zone du pouce).
-- Ombres : `card` (douce, encre) et `neon` (rose, sans décalage).
-
-## Composants (`src/components`)
+## Composants
 
 | Composant | Rôle |
 | --- | --- |
-| `T` | Texte typé par variante, couleur, centrage, plafond de mise à l'échelle |
-| `Button` | Variantes `primary` (rouge), `green`, `neon`, `secondary`, `ghost`, `danger`; tailles `cta` / `md` / `sm`; animation d'appui (spring sur `transform`), haptique |
-| `Card` | Carte papier / verte / rouge / bois |
-| `Chip` | Filtre ou étiquette sélectionnable |
-| `Stepper` | Gros chiffre + deux cibles 60 px |
-| `Flag` | Drapeau rouge SVG, variante `muted` pour un trou joué |
-| `Mannequin` | Avatar bois low-poly SVG, tenues `cap`, `argyle`, `putter`, `flag`, couleur d'accent d'équipe |
-| `BrickWall` | Motif brique SVG pour les en-têtes |
-| `Header` | Retour 48 px, titre, kicker, slot droit |
-| `Screen` / `PhoneFrame` | Fond, zones sûres, pied fixe ; cadre téléphone sur écran large (web) |
-| `SafetyBar` | Je m'arrête · Eau · Taxi · Position |
-| `SyncBanner` | État réseau et synchronisation |
+| `Button` | `primary` (fairway, ou ivoire avec `onDark`), `secondary` (contour), `ghost` (trait fin), `danger`. Appui : 150 ms, scale 0,97, désactivé sous prefers-reduced-motion |
+| `Neon` | Titre or avec halo, effet « qui s'allume » 900 ms une seule fois. Réservé au logo, à la victoire et à la carte 9:16. Statique sous prefers-reduced-motion |
+| `Card` | `paper` (blanc bordé), `green`, `dark` (surface sur vert), `outline` |
+| `ScoreTable` | Feuille sans défilement horizontal : nom + total, puis cellules de trous repliables |
+| `GreenJacket` | Veste verte du vainqueur (Compétition) |
+| `Mannequin` | Avatars bois affinés : traits 1,4 px, palette bois unifiée, tenues `cap`, `argyle`, `putter`, `flag` |
+| `Flag` | Drapeau fin, mât ivoire ou encre selon le fond |
+| `StatusBox` | États chargement / vide / erreur, avec action |
+| `Toggle` | Interrupteur étiqueté, variante sur fond sombre |
+| `SafetyBar` | Je m'arrête · Eau · Taxi · Position, aplats mats |
+| `SyncBanner` | État réseau honnête |
+| `Header`, `Screen`, `PhoneFrame`, `Chip`, `Stepper`, `T` | Structure |
 
-## Micro-interactions
+## Motion
 
-- Appui : spring 0,96 → 1 sur les boutons.
-- « Fait » : pop du badge de points (1 → 1,12 → 1) + haptique succès.
-- Porte 18+ : pulsation lente du badge néon.
-- Replay : fondu par trou, 1,8 s.
-- Uniquement `transform` et `opacity`, `useNativeDriver: true`.
+- Transitions d'écran : 200 ms (fondu sur le web).
+- Appui : 150 ms. Pop du badge de points : 2 × 150 ms.
+- Néon : 900 ms, uniquement victoire, logo d'accueil, carte de fin.
+- `useReducedMotion` : `prefers-reduced-motion` sur le web, « Réduire les animations » sur iOS/Android. Toutes les animations tombent à l'état final.
 
-## À éviter (et évité)
+## Densité
 
-Cartes identiques empilées (chaque carte a un rôle, une couleur ou une bordure propre), dégradés génériques (aplats + motif brique), emojis en décor (icônes SVG dessinées), texte long.
+Une action principale par écran, boutons de 52 à 56 px, cibles de 48 px, gouttières de 16 px, mobile d'abord à partir de 320 px (grille boutique en une colonne sous 360 px, actions du parcours sur leur propre ligne).

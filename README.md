@@ -4,6 +4,10 @@ Application mobile (iOS et Android) pour accompagner une soirée entre amis adul
 
 **Principe** : le groupe choisit un parcours de 3 à 9 lieux (bars, cafés, restaurants). Chaque lieu est un « trou » avec un drapeau rouge. À chaque trou, un défi rapporte des points et la feuille de score verte « PUB GOLF » se remplit. Le score vient **uniquement des défis**. Ce que chacun consomme ne change jamais ni son score, ni l'avancée du groupe.
 
+## v2 « clubhouse de nuit » (branche `feat/clubhouse-v2`)
+
+Refonte visuelle (vert fairway, ivoire, or champagne, Playfair Display + Inter), moteur de score unique (points de défis), modes de jeu, notice et règles, rejoindre par code, états d'erreur, boutique honnête. Audit du brief et verdicts : [docs/audit.md](docs/audit.md). Captures à 320, 390 et desktop : `docs/captures/`.
+
 ## Démo web
 
 L'app est exportée en web (Expo) et déployée sur Vercel comme maquette interactive : sur un écran large elle s'affiche dans un cadre téléphone, sur mobile en plein écran.
@@ -41,6 +45,8 @@ npm run typecheck
 | Architecture technique | [docs/architecture.md](docs/architecture.md) |
 | Plan en 3 étapes | [docs/plan.md](docs/plan.md) |
 | Règles de conception (alcool, 18+, confidentialité) | [docs/regles.md](docs/regles.md) |
+| Moteur de score, égalité, abandon, trou annulé, modes | [docs/moteur-de-score.md](docs/moteur-de-score.md) |
+| Audit du test externe, ce qui existe vraiment | [docs/audit.md](docs/audit.md) |
 
 ## Structure
 
@@ -48,7 +54,9 @@ npm run typecheck
 src/
   app/            écrans expo-router
     _layout.tsx   fonts, providers, cadre téléphone (web), bandeau de synchro
-    index.tsx     1. Accueil + porte 18+
+    index.tsx     1. Accueil + porte 18+ + notice en 3 écrans
+    join.tsx      Rejoindre par code (3 étapes)
+    rules.tsx     Comment ça marche (règles + exemple chiffré)
     create.tsx    2. Création (trous, format, invitation lien/QR, avatars)
     course.tsx    3. Parcours (carte, ordre, remplacement, recherche)
     hole.tsx      4. Trou en cours (défi, Fait, photo, points, barre de sécurité)
@@ -57,7 +65,8 @@ src/
     stop.tsx      « Je m'arrête » (pause, eau, taxi/VTC, position)
     host.tsx      Outils de l'hôte
   components/     design system (Button, T, Card, Chip, Stepper, Flag, Mannequin…)
-  data/           défis, lieux, produits
+  data/           défis par mode, règles, lieux, produits
+  sync/           salle partagée locale (deux clients du même navigateur)
   store/          état de la sortie, classement, persistance
   theme/          tokens
 docs/             livrables

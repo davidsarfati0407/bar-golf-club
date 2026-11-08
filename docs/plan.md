@@ -9,8 +9,9 @@
 - [x] Règles alcool hors du jeu, lieux « à vérifier », remplacement en deux gestes.
 - [x] Outils de l'hôte : corriger, annuler, retirer, passer la main, pause, fin.
 - [x] Persistance locale, bandeau de synchronisation, démo en 3 appuis.
-- [ ] Backend temps réel (Supabase) : rooms par code, actions optimistes, file hors ligne.
-- [ ] Page d'arrivée invité (lien / QR → prénom + 18+).
+- [x] v2 (8 nov. 2026) : refonte « clubhouse de nuit », moteur de score unique documenté, modes Classique / Compétition / Soft / Express, notice en 3 écrans + règles permanentes, rejoindre par code (synchro locale entre deux fenêtres), états chargement / vide / erreur, boutique honnête, bugs du test externe corrigés.
+- [ ] Backend temps réel (option à valider : Supabase ou Convex) : salles par code entre téléphones, actions optimistes, file hors ligne. L'adaptateur local `src/sync/localRoom.ts` définit déjà l'interface (lire, écrire, s'abonner).
+- [x] Page d'arrivée invité (lien / QR → principe en 3 points → prénom + 18+).
 - [ ] Recherche de lieux réelle, statut d'ouverture uniquement si confirmé.
 - [ ] Rendu réel de la carte 9:16 (`react-native-view-shot`) et du replay (vidéo courte).
 - [ ] Tests reducer + E2E Maestro, builds EAS (TestFlight, Play interne).

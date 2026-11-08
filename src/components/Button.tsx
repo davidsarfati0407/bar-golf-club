@@ -1,43 +1,38 @@
 import React, { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
-import { colors, radius, shadow, touch, type } from '@/theme/tokens';
+import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { colors, motion, radius, touch } from '@/theme/tokens';
 import { tap } from './haptics';
 import { T } from './T';
+import { useReducedMotion } from './useReducedMotion';
 
-type Kind = 'primary' | 'green' | 'neon' | 'secondary' | 'ghost' | 'danger';
-
+// Sur ivoire : primary = vert fairway. Sur vert nuit : primary = ivoire (passer onDark).
+type Kind = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Props = {
   label: string;
   onPress: () => void;
   kind?: Kind;
   size?: 'cta' | 'md' | 'sm';
+  onDark?: boolean;
   icon?: React.ReactNode;
   disabled?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   hint?: string;
+  testID?: string;
 };
 
-const BG: Record<Kind, string> = {
-  primary: colors.pubRed,
-  green: colors.scoreGreen,
-  neon: colors.neonPink,
-  secondary: colors.cream,
-  ghost: 'transparent',
-  danger: colors.danger,
-};
-const FG: Record<Kind, string> = {
-  primary: colors.cream,
-  green: colors.cream,
-  neon: colors.ink,
-  secondary: colors.ink,
-  ghost: colors.ink,
-  danger: colors.cream,
-};
-
-export function Button({ label, onPress, kind = 'primary', size = 'md', icon, disabled, style, hint }: Props) {
+export function Button({ label, onPress, kind = 'primary', size = 'md', onDark, icon, disabled, style, hint, testID }: Props) {
+  const reduced = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
-  const press = (to: number) => Animated.spring(scale, { toValue: to, useNativeDriver: true, speed: 40, bounciness: 6 }).start();
-  const height = size === 'cta' ? touch.cta : size === 'sm' ? touch.min : 52;
+  const press = (to: number) => {
+    if (reduced) return;
+    Animated.timing(scale, { toValue: to, duration: motion.fast, useNativeDriver: true }).start();
+  };
+  const height = size === 'cta' ? touch.cta : size === 'sm' ? touch.min - 4 : 52;
+
+  const bg = kind === 'primary' ? (onDark ? colors.ivory : colors.fairway) : kind === 'danger' ? colors.danger : 'transparent';
+  const fg = kind === 'primary' ? (onDark ? colors.ink : colors.ivory) : kind === 'danger' ? colors.ivory : onDark ? colors.ivory : colors.ink;
+  const border = kind === 'secondary' ? (onDark ? colors.ivory : colors.ink) : kind === 'ghost' ? (onDark ? colors.fairwayLine : colors.line) : 'transparent';
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -45,46 +40,22 @@ export function Button({ label, onPress, kind = 'primary', size = 'md', icon, di
       accessibilityHint={hint}
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
-      onPressIn={() => press(0.96)}
+      testID={testID}
+      onPressIn={() => press(0.97)}
       onPressOut={() => press(1)}
-      onPress={() => {
-        tap();
-        onPress();
-      }}
+      onPress={() => { tap(); onPress(); }}
       style={style}
     >
-      <Animated.View
-        style={[
-          styles.base,
-          { backgroundColor: BG[kind], minHeight: height, transform: [{ scale }] },
-          kind === 'ghost' && styles.ghost,
-          kind === 'secondary' && styles.secondary,
-          kind === 'neon' && shadow.neon,
-          (kind === 'primary' || kind === 'green') && shadow.card,
-          disabled && styles.disabled,
-        ]}
-      >
+      <Animated.View style={[styles.base, { backgroundColor: bg, borderColor: border, minHeight: height, transform: [{ scale }] }, disabled && styles.disabled]}>
         {icon ? <View style={styles.icon}>{icon}</View> : null}
-        <T v={size === 'cta' ? 'h3' : 'bodyBold'} color={FG[kind]} style={size === 'cta' ? styles.ctaText : undefined}>
-          {label}
-        </T>
+        <T v={size === 'cta' ? 'h3' : size === 'sm' ? 'smallBold' : 'bodyBold'} color={fg}>{label}</T>
       </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.pill,
-    paddingHorizontal: 22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  ghost: { borderWidth: 2, borderColor: colors.line },
-  secondary: { borderWidth: 2, borderColor: colors.creamDark },
-  disabled: { opacity: 0.45 },
-  icon: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
-  ctaText: { fontSize: 20, lineHeight: 24, fontFamily: type.h1.fontFamily },
+  base: { borderRadius: radius.pill, borderWidth: 1.5, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  disabled: { opacity: 0.4 },
+  icon: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
 });

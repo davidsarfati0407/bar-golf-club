@@ -1,75 +1,69 @@
-// Design system — Bar Golf Club
-// Palette tirée de l'univers vidéo : rouge pub profond, bois miel, vert scorecard, crème, accent néon rose.
+// Design system « clubhouse de nuit » — Bar Golf Club
+// Base vert fairway profond, surfaces ivoire type carte de score, encre presque noire.
+// Un seul accent néon : or champagne. Réservé aux moments de fête (logo, victoire, carte à partager).
 
 export const colors = {
-  pubRed: '#7A1E2B',
-  pubRedDeep: '#55121D',
-  flagRed: '#E0352B',
-  honey: '#C8893A',
-  honeyLight: '#E2B373',
-  woodDark: '#8A5A24',
-  scoreGreen: '#1F6B45',
-  scoreGreenDeep: '#134A30',
-  scoreGreenLight: '#2E8A5B',
-  cream: '#F6EEDC',
-  creamDark: '#E9DCC0',
-  paper: '#FBF6EA',
-  neonPink: '#FF4FA3',
-  neonPinkGlow: 'rgba(255, 79, 163, 0.45)',
-  ink: '#1A1410',
-  inkSoft: '#4A3F36',
-  inkMuted: '#7D6F63',
-  line: 'rgba(26, 20, 16, 0.12)',
+  fairway: '#0E3B2E',
+  fairwayDeep: '#092A21',
+  fairwayLight: '#15503E',
+  fairwayLine: 'rgba(247, 242, 231, 0.16)',
+  ivory: '#F7F2E7',
+  ivoryDark: '#EBE3D2',
+  ivoryDeep: '#DED3BC',
+  ink: '#1A2420',
+  inkSoft: '#3E4A45',
+  inkMuted: '#5F6B66',
+  line: 'rgba(26, 36, 32, 0.14)',
+  gold: '#E8C36A',
+  goldDeep: '#C9A24A',
+  goldGlow: 'rgba(232, 195, 106, 0.55)',
+  flag: '#D63A2F',
+  success: '#2F8F5B',
+  warning: '#C98A2B',
+  danger: '#B8382E',
+  water: '#3F7FBF',
   white: '#FFFFFF',
-  successGreen: '#2E8A5B',
-  warning: '#D9822B',
-  danger: '#C8322B',
+  // Couleurs d'équipe : lisibles sur ivoire et sur vert nuit.
+  teamRed: '#D63A2F',
+  teamGold: '#E8C36A',
+  teamBlue: '#4C8FD1',
+  teamRose: '#E06C9F',
 } as const;
 
 export const fonts = {
-  regular: 'Nunito_600SemiBold',
-  bold: 'Nunito_700Bold',
-  extraBold: 'Nunito_800ExtraBold',
-  black: 'Nunito_900Black',
+  serif: 'PlayfairDisplay_700Bold',
+  serifBlack: 'PlayfairDisplay_900Black',
+  ui: 'Inter_400Regular',
+  uiMedium: 'Inter_500Medium',
+  uiSemi: 'Inter_600SemiBold',
+  uiBold: 'Inter_700Bold',
 } as const;
 
-// Échelle typographique arrondie et grasse, gros chiffres, peu de texte.
+const tabular = { fontVariant: ['tabular-nums'] as const };
+
 export const type = {
-  display: { fontFamily: fonts.black, fontSize: 56, lineHeight: 60, letterSpacing: -1.5 },
-  h1: { fontFamily: fonts.black, fontSize: 32, lineHeight: 36, letterSpacing: -0.8 },
-  h2: { fontFamily: fonts.extraBold, fontSize: 24, lineHeight: 28, letterSpacing: -0.4 },
-  h3: { fontFamily: fonts.extraBold, fontSize: 18, lineHeight: 22 },
-  body: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 22 },
-  bodyBold: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
-  small: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 18 },
-  smallBold: { fontFamily: fonts.bold, fontSize: 14, lineHeight: 18 },
-  caption: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, letterSpacing: 0.6, textTransform: 'uppercase' as const },
-  number: { fontFamily: fonts.black, fontSize: 44, lineHeight: 48, letterSpacing: -1 },
+  display: { fontFamily: fonts.serifBlack, fontSize: 44, lineHeight: 50, letterSpacing: -0.5 },
+  h1: { fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, letterSpacing: -0.3 },
+  h2: { fontFamily: fonts.serif, fontSize: 23, lineHeight: 28 },
+  h3: { fontFamily: fonts.uiBold, fontSize: 17, lineHeight: 22 },
+  body: { fontFamily: fonts.ui, fontSize: 16, lineHeight: 23 },
+  bodyBold: { fontFamily: fonts.uiSemi, fontSize: 16, lineHeight: 23 },
+  small: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 19 },
+  smallBold: { fontFamily: fonts.uiSemi, fontSize: 14, lineHeight: 19 },
+  caption: { fontFamily: fonts.uiSemi, fontSize: 11, lineHeight: 14, letterSpacing: 1.2, textTransform: 'uppercase' as const },
+  number: { fontFamily: fonts.uiBold, fontSize: 36, lineHeight: 40, ...tabular },
+  numberSmall: { fontFamily: fonts.uiBold, fontSize: 20, lineHeight: 24, ...tabular },
+  numberCell: { fontFamily: fonts.uiSemi, fontSize: 13, lineHeight: 16, ...tabular },
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
-
-export const radius = { sm: 10, md: 16, lg: 22, xl: 30, pill: 999 } as const;
-
-// Cible tactile minimale : 44 pt (iOS) / 48 dp (Android). On prend 48 partout.
-export const touch = { min: 48, cta: 60 } as const;
+export const radius = { sm: 8, md: 12, lg: 16, xl: 24, pill: 999 } as const;
+export const touch = { min: 48, cta: 56 } as const;
+export const motion = { fast: 150, base: 200, slow: 250, neon: 900 } as const;
 
 export const shadow = {
-  card: {
-    shadowColor: '#1A1410',
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
-  },
-  neon: {
-    shadowColor: '#FF4FA3',
-    shadowOpacity: 0.9,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
-  },
+  card: { shadowColor: '#1A2420', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  neon: { shadowColor: '#E8C36A', shadowOpacity: 0.9, shadowRadius: 22, shadowOffset: { width: 0, height: 0 }, elevation: 6 },
 } as const;
 
-export const PHONE_WIDTH = 402;
-export const PHONE_HEIGHT = 874;
+export const PHONE_WIDTH = 390;
